@@ -93,7 +93,7 @@ app.post('/api/send-booking', async (req, res) => {
       to: OWNER_EMAIL,
       replyTo: email || undefined,
       subject: `New Booking Request: ${subject || 'No subject'}`,
-      html: wrapEmail('New Booking Request', detailsHtml),
+      html: wrapEmail('New Booking Request', detailsHtml), 
       attachments: [
         {
           filename: 'Molotov Logo PNG.png',
