@@ -13,7 +13,7 @@ const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.vercel.app';
 
 app.use(cors());
 app.use(express.json());
-
+ 
 // Gmail transporterx
 const transporter = nodemailer.createTransport({
   service: 'gmail',
