@@ -14,7 +14,7 @@ const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.vercel.app';
 app.use(cors());
 app.use(express.json());
 
-// Gmail transporter
+// Gmail transporterx
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -67,7 +67,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ ok: true, time: new Date().toISOString() });
 });
 
-app.post('/api/send-booking', async (req, res) => {
+app.post('/', async (req, res) => {
   try {
     const { selectedDate, email, subject, name, phone, description } = req.body;
 
