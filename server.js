@@ -32,7 +32,7 @@ const wrapEmail = (title, bodyHtml) => `
           <table role="presentation" width="100%" style="border-collapse:collapse">
             <tr>
               <td style="width:48px;vertical-align:middle">
-                <img src="cid:molotovLogo" width="70" height="80" style="display:block;border-radius:6px" alt="Molotov Films" />
+                <img src="cid:molotovLogo" width="90" height="100" style="display:block;border-radius:6px" alt="Molotov Films" />
               </td>
               <td style="padding-left:12px;vertical-align:middle">
                 <div style="color:#fff;font-size:18px;font-weight:700;line-height:1">${title}</div>
