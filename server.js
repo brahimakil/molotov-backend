@@ -59,6 +59,14 @@ const wrapEmail = (title, bodyHtml) => `
   </div>
 `;
 
+app.get('/', (req, res) => {
+  res.status(200).send('Molotov backend is running');
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ ok: true, time: new Date().toISOString() });
+});
+
 app.post('/api/send-booking', async (req, res) => {
   try {
     const { selectedDate, email, subject, name, phone, description } = req.body;
@@ -139,5 +147,5 @@ app.post('/api/send-booking', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} — health: /health`);
 });
