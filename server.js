@@ -105,7 +105,7 @@ app.post('/', async (req, res) => {
       attachments: [
         {
           filename: 'Molotov Logo PNG.png',
-          path: path.resolve(__dirname, 'Molotove text Final.png'), 
+          path: path.resolve(__dirname, 'Molotov Logo PNG.png'), 
           cid: 'molotovLogo'
         }
       ]
@@ -146,6 +146,10 @@ app.post('/', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} — health: /health`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} — health: /health`);
+  });
+}
+
+module.exports = app;
