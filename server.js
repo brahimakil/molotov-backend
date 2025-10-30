@@ -8,22 +8,25 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ENV
-const OWNER_EMAIL = process.env.OWNER_EMAIL || 'Filmsmolotov@gmail.com';
 const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.be';
+const MAIL_USER = 'info@molotovfilms.be';
+const MAIL_PASS = process.env.MAILPROTECT_PASS;
 
 app.use(cors());
 app.use(express.json());
- 
-// Gmail transporterx
+
+// Combell Mailprotect transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp-auth.mailprotect.be',
+  port: 587,       // TLS
+  secure: false,   // true if using port 465
   auth: {
-    user: OWNER_EMAIL,
-    pass: process.env.GMAIL_APP_PASSWORD
+    user: MAIL_USER,
+    pass: MAIL_PASS
   }
 });
 
-// Common header (with logo) + footer (with link)
+// Common header/footer wrapper
 const wrapEmail = (title, bodyHtml) => `
   <div style="font-family:Segoe UI,Arial,sans-serif;max-width:680px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e9ecef">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
@@ -97,21 +100,21 @@ app.post('/', async (req, res) => {
 
     // 1) Owner email
     const ownerMail = {
-      from: `<info@molotovfilms.be>`,       
-      to: `info@molotovfilms.be`,  
+      from: MAIL_USER,
+      to: MAIL_USER,
       replyTo: email || undefined,
       subject: `New Booking Request: ${subject || 'No subject'}`,
-      html: wrapEmail('New Booking Request', detailsHtml), 
+      html: wrapEmail('New Booking Request', detailsHtml),
       attachments: [
         {
           filename: 'Molotov Logo PNG.png',
-          path: path.resolve(__dirname, 'Molotov Logo PNG.png'), 
+          path: path.resolve(__dirname, 'Molotov Logo PNG.png'),
           cid: 'molotovLogo'
         }
       ]
     };
 
-    // 2) User auto-reply (polished)
+    // 2) User auto-reply
     const userBody = `
       <p style="margin:0 0 10px;color:#111;font-size:15px">Hi${name ? ` ${name}` : ''},</p>
       <p style="margin:0 0 12px;color:#444;font-size:14px">
@@ -121,7 +124,7 @@ app.post('/', async (req, res) => {
       <p style="margin:14px 0 0;color:#444;font-size:13px">— Molotov Films</p>
     `;
     const userMail = {
-      from: `<info@molotovfilms.be>`,   
+      from: MAIL_USER,
       to: email,
       subject: 'We received your booking request ✅',
       html: wrapEmail('Thanks for your request', userBody),
