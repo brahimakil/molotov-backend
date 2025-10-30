@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
   secure: false, // true for 465, false for 587
   auth: {
     user: 'info@molotovfilms.be',
-    pass: process.env.MAILPROTECT_PASSWORD // your mailbox password
+    pass: process.env.MAILPROTECT_PASS // your mailbox password
   }
 });
 
