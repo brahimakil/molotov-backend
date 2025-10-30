@@ -9,24 +9,22 @@ const PORT = process.env.PORT || 5000;
 
 // ENV
 const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.be';
-const MAIL_USER = 'info@molotovfilms.be';
-const MAIL_PASS = process.env.MAILPROTECT_PASS;
+
+// Nodemailer transporter for info@molotovfilms.be
+const transporter = nodemailer.createTransport({
+  host: 'smtp-auth.mailprotect.be',
+  port: 587,
+  secure: false, // true for 465, false for 587
+  auth: {
+    user: 'info@molotovfilms.be',
+    pass: process.env.MAILPROTECT_PASSWORD // your mailbox password
+  }
+});
 
 app.use(cors());
 app.use(express.json());
 
-// Combell Mailprotect transporter
-const transporter = nodemailer.createTransport({
-  host: 'smtp-auth.mailprotect.be',
-  port: 587,       // TLS
-  secure: false,   // true if using port 465
-  auth: {
-    user: MAIL_USER,
-    pass: MAIL_PASS
-  }
-});
-
-// Common header/footer wrapper
+// Wrap email with header/footer
 const wrapEmail = (title, bodyHtml) => `
   <div style="font-family:Segoe UI,Arial,sans-serif;max-width:680px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e9ecef">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
@@ -45,13 +43,11 @@ const wrapEmail = (title, bodyHtml) => `
           </table>
         </td>
       </tr>
-
       <tr>
         <td style="padding:24px 22px;background:#ffffff">
           ${bodyHtml}
         </td>
       </tr>
-
       <tr>
         <td style="padding:18px 22px;background:#f8f9fa;border-top:1px solid #eef1f4;text-align:center">
           <a href="${SITE_URL}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:#6B7A47;color:#fff;text-decoration:none;font-weight:600">Visit Website</a>
@@ -62,13 +58,8 @@ const wrapEmail = (title, bodyHtml) => `
   </div>
 `;
 
-app.get('/', (req, res) => {
-  res.status(200).send('Molotov backend is running');
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ ok: true, time: new Date().toISOString() });
-});
+app.get('/', (req, res) => res.send('Molotov backend is running'));
+app.get('/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
 app.post('/', async (req, res) => {
   try {
@@ -79,7 +70,6 @@ app.post('/', async (req, res) => {
         <div style="color:#111;font-weight:700">Selected Date</div>
         <div style="color:#6B7A47;font-weight:700;margin-top:2px">${selectedDate || '-'}</div>
       </div>
-
       <div style="margin-bottom:12px">
         <div style="color:#111;font-weight:700;margin-bottom:8px">Client Information</div>
         <table role="presentation" width="100%" style="font-size:14px;border-collapse:collapse">
@@ -89,32 +79,12 @@ app.post('/', async (req, res) => {
           ${phone ? `<tr><td style="color:#666;padding:6px 0">Phone:</td><td style="color:#111">${phone}</td></tr>` : ''}
         </table>
       </div>
-
-      ${description ? `
-        <div style="margin-top:14px">
-          <div style="color:#111;font-weight:700;margin-bottom:6px">Message</div>
-          <div style="background:#f8f9fa;border:1px solid #eef1f4;border-radius:8px;padding:12px;color:#111;line-height:1.6">${description}</div>
-        </div>
-      ` : ''}
+      ${description ? `<div style="margin-top:14px">
+        <div style="color:#111;font-weight:700;margin-bottom:6px">Message</div>
+        <div style="background:#f8f9fa;border:1px solid #eef1f4;border-radius:8px;padding:12px;color:#111;line-height:1.6">${description}</div>
+      </div>` : ''}
     `;
 
-    // 1) Owner email
-    const ownerMail = {
-      from: MAIL_USER,
-      to: MAIL_USER,
-      replyTo: email || undefined,
-      subject: `New Booking Request: ${subject || 'No subject'}`,
-      html: wrapEmail('New Booking Request', detailsHtml),
-      attachments: [
-        {
-          filename: 'Molotov Logo PNG.png',
-          path: path.resolve(__dirname, 'Molotov Logo PNG.png'),
-          cid: 'molotovLogo'
-        }
-      ]
-    };
-
-    // 2) User auto-reply
     const userBody = `
       <p style="margin:0 0 10px;color:#111;font-size:15px">Hi${name ? ` ${name}` : ''},</p>
       <p style="margin:0 0 12px;color:#444;font-size:14px">
@@ -123,36 +93,41 @@ app.post('/', async (req, res) => {
       ${detailsHtml}
       <p style="margin:14px 0 0;color:#444;font-size:13px">— Molotov Films</p>
     `;
-    const userMail = {
-      from: MAIL_USER,
-      to: email,
-      subject: 'We received your booking request ✅',
-      html: wrapEmail('Thanks for your request', userBody),
-      attachments: [
-        {
+
+    await Promise.all([
+      // Send to your Gmail
+      transporter.sendMail({
+        from: `"Molotov Films" <info@molotovfilms.be>`,
+        to: 'filmsmolotov@gmail.com',
+        subject: `New Booking Request: ${subject || 'No subject'}`,
+        html: wrapEmail('New Booking Request', detailsHtml),
+        attachments: [{
           filename: 'Molotov Logo PNG.png',
           path: path.resolve(__dirname, 'Molotov Logo PNG.png'),
           cid: 'molotovLogo'
-        }
-      ]
-    };
-
-    await Promise.all([
-      transporter.sendMail(ownerMail),
-      email ? transporter.sendMail(userMail) : Promise.resolve()
+        }]
+      }),
+      // Send auto-reply to user
+      email ? transporter.sendMail({
+        from: `"Molotov Films" <info@molotovfilms.be>`,
+        to: email,
+        subject: 'We received your booking request ✅',
+        html: wrapEmail('Thanks for your request', userBody),
+        attachments: [{
+          filename: 'Molotov Logo PNG.png',
+          path: path.resolve(__dirname, 'Molotov Logo PNG.png'),
+          cid: 'molotovLogo'
+        }]
+      }) : Promise.resolve()
     ]);
 
-    res.status(200).json({ success: true, message: 'Sent to owner and auto-reply to user.' });
+    res.status(200).json({ success: true, message: 'Sent to owner and user.' });
   } catch (error) {
     console.error('Error sending email:', error);
     res.status(500).json({ success: false, message: 'Failed to send booking request' });
   }
 });
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} — health: /health`);
-  });
-}
+app.listen(PORT, () => console.log(`Server running on port ${PORT} — health: /health`));
 
 module.exports = app;
