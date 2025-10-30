@@ -98,7 +98,7 @@ app.post('/', async (req, res) => {
     // 1) Owner email
     const ownerMail = {
       from: `<info@molotovfilms.be>`,       
-      to: `info@molotovfilms.be`, 
+      to: `info@molotovfilms.be`,  
       replyTo: email || undefined,
       subject: `New Booking Request: ${subject || 'No subject'}`,
       html: wrapEmail('New Booking Request', detailsHtml), 
