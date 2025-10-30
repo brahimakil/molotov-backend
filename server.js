@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 // ENV
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'Filmsmolotov@gmail.com';
-const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.vercel.app';
+const SITE_URL = process.env.SITE_URL || 'https://molotovfilms.be';
 
 app.use(cors());
 app.use(express.json());
